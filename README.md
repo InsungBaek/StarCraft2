@@ -1,2 +1,2 @@
-# StarCraft2
-## 3-Dimensional Convolutional Neural Networks for Predicting StarCraft Ⅱ Results and Extracting Key Game Situations
+# StarCraft Ⅱ
+#### StarCarft Ⅱ result prediction and extraction key situations using PyTorch.
