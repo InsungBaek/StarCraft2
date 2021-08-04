@@ -19,8 +19,8 @@ from absl import logging
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 
-sys.path.append('D:/1.Project/2019.04_Game AI/Code_HG')
-start_dir = "D:/1.Project/2019.04_Game AI/Code_HG"
+sys.path.append('../.')
+start_dir = "../."
 os.chdir(start_dir)
 del(start_dir)
 
@@ -31,8 +31,7 @@ from utils_sc.misc import count_parameters
 
 FLAGS = flags.FLAGS
 FLAGS(sys.argv)
-flags.DEFINE_string('root', default='./parsed/TvP/', help="")
-# flags.DEFINE_string('root', default='./연구미팅/Test_set/', help="")
+flags.DEFINE_string('root', default='./data/TvP/', help="")
 flags.DEFINE_string('weighting', default='log', help="")
 flags.DEFINE_integer('num_workers', default=4, help="")
 flags.DEFINE_integer('num_epochs', default=50, help="")
