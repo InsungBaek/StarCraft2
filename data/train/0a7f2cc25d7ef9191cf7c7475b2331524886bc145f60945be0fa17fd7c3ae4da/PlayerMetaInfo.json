@@ -1,0 +1,14 @@
+{
+    "1": {
+        "race": "Terran",
+        "result": "Victory",
+        "apm": 95,
+        "mmr": 2800
+    },
+    "2": {
+        "race": "Protoss",
+        "result": "Defeat",
+        "apm": 30,
+        "mmr": 2800
+    }
+}
