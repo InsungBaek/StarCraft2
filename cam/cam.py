@@ -20,9 +20,9 @@ import torch.nn as nn
 
 import torch.nn.functional as F
 
-#sys.path.append('D:/PROJECT/2019-ETRI-STARCRAFT/code/Code_HG/baselines/')
-sys.path.append('D:/1.Project/2019.04_Game AI/Code_HG/')
-start_dir = 'D:/1.Project/2019.04_Game AI/Code_HG/'
+#sys.path.append('../.')
+sys.path.append('../.')
+start_dir = '../.'
 os.chdir(start_dir)
 del(start_dir)
 
@@ -35,7 +35,7 @@ import pickle as pkl
 import matplotlib.pyplot as plt
 
 ################################################## 1. Model load 
-model_path = 'D:/1.Project/2019.04_Game AI/Code_HG/best_model/ResNet3D_non_local_025_0.973_0.900.pt'
+model_path = './best_model/ResNet3D_non_local_025_0.973_0.900.pt'
 INCLUDE = ['visibility_map', 'player_relative', 'unit_type']
 num_classes = 2
 model_configs = {
@@ -53,9 +53,9 @@ criterion = nn.CrossEntropyLoss()
 criterion = criterion.to(device)
 model = model.to(device)
 ################################################## 2. Data load 
-### 본 데이터 주소는 train/test 폴더 없는 주소임.
-PROJECT_DIR = 'D:/1.Project/2019.04_Game AI/Code_HG/'
-REPLAY_DIR = os.path.join(PROJECT_DIR, 'parsed/TvP/cam/')
+
+PROJECT_DIR = '../.'
+REPLAY_DIR = os.path.join(PROJECT_DIR, 'data/TvP/cam/')
 RESULT_DIR = os.path.join(PROJECT_DIR, 'paper_result/cam_result/')
 REPLAY_LIST = os.listdir(REPLAY_DIR)
 
@@ -88,7 +88,7 @@ def human_readable_size(size, precision=2):
         size = size / 1024.0  # apply the division
     return "%.*f%s" % (precision, size, suffixes[suffix_idx])
 
-# data 생성
+# create dataset
 data_X = []
 data_Y = []
 timestep_all = []
@@ -155,7 +155,7 @@ print('X_tensor.shape: ', X_tensor.shape)
 print('Y_tensor.shape: ', Y_tensor.shape)
 
 ################################################## 3. class activation mapping
-# 마지막 conv layer 가져오기
+# last conv layer
 class SaveFeatures():
     """Extract pretrained activations"""
     features=None
@@ -167,7 +167,7 @@ final_layer = model._modules.get('block3')
 
 activated_features = SaveFeatures(final_layer)
 
-# 2개 클래스 각각에 대한 예측확률
+# probability of two class
 prediction = model(X_dict)
 pred_probabilities = F.softmax(prediction).data.squeeze()
 activated_features.remove()
@@ -195,7 +195,6 @@ for i in range(int(len(results)/5)):
     results_50.append(np.transpose(np.array(results[int(i)*5:int(i)*5+5].sum(axis=0))))
 
 results_50 = pd.DataFrame(results_50, columns=[replay_0, replay_1])
-#시점에 대한 CAM 값 뽑기
 results_50.to_csv(RESULT_DIR+'results_imp_time.csv')
 
 # 256 개 node에 대한 weight plotting
@@ -243,19 +242,19 @@ for obs in range(len(REPLAY_LIST)):
                 tmp_sum_cam += tmp_tmp_sum_cam[s]
         sum_cam.append(tmp_sum_cam)
     
-    time_cams=[]
-    for t in range(len(sum_cam)):
-        time_cam = sum(sum_cam[t].flatten())
-        time_cams.append(time_cam)
+#   time_cams=[]
+#   for t in range(len(sum_cam)):
+#       time_cam = sum(sum_cam[t].flatten())
+#       time_cams.append(time_cam)
 
-    time_cams = np.array(time_cams)
-    time_cams[time_cams < 0] = 0
+#    time_cams = np.array(time_cams)
+#    time_cams[time_cams < 0] = 0
     
-    time_cams = pd.DataFrame(time_cams, columns=[REPLAY_LIST[obs]])
-    #시점에 대한 CAM 값 저장
+#   time_cams = pd.DataFrame(time_cams, columns=[REPLAY_LIST[obs]])
+  
 #    os.mkdir(RESULT_DIR+REPLAY_LIST[obs])
-    os.makedirs(RESULT_DIR+REPLAY_LIST[obs]+'/CAM_factor', exist_ok=True)
-    time_cams.to_csv(RESULT_DIR+REPLAY_LIST[obs]+'/results_imp_time_cam.csv')      
+#    os.makedirs(RESULT_DIR+REPLAY_LIST[obs]+'/CAM_factor', exist_ok=True)
+#    time_cams.to_csv(RESULT_DIR+REPLAY_LIST[obs]+'/results_imp_time_cam.csv')      
 
     if torch.topk(pred_probabilities,1).indices[obs] == 0:
         pred = 'Protoss Win'
@@ -267,22 +266,6 @@ for obs in range(len(REPLAY_LIST)):
     else:
         true = 'Terran Win'
          
-    # use the plot function
-#    plt.style.use(['seaborn-deep'])
-    # plt.figure(figsize=(12,8))
-    # plt.plot(time_cams, color='blue')
-    # plt.title('Time_CAM(pred='+pred+' & true='+true+')')
-    # plt.suptitle(REPLAY_LIST[obs], fontsize=15)
-    # plt.xlabel('Time')
-    # plt.ylabel('CAM_Score')
-    # plt.grid(False)
-    # plt.savefig(RESULT_DIR+REPLAY_LIST[obs]+'/'+REPLAY_LIST[obs]+'.png')
-    # plt.show()
-    # Large bandwidth
-    #sns.plt.show()
-     
-#    len(sum_cam)    
-#    len(t_cam)
     cam_np = np.stack(sum_cam)
     cam_np_f = cam_np.flatten()
     
