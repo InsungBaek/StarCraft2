@@ -19,9 +19,9 @@ import torch.nn as nn
 
 import torch.nn.functional as F
 
-#sys.path.append('D:/PROJECT/2019-ETRI-STARCRAFT/code/Code_HG/baselines/')
-sys.path.append('D:/1.Project/2019.04_Game AI/Code_HG/')
-start_dir = 'D:/1.Project/2019.04_Game AI/Code_HG/'
+#sys.path.append('../.')
+sys.path.append('../.')
+start_dir = '../.'
 os.chdir(start_dir)
 del(start_dir)
 
@@ -34,7 +34,7 @@ import pickle as pkl
 import matplotlib.pyplot as plt
 
 ###### 1. Model load ######
-model_path = 'D:/1.Project/2019.04_Game AI/Code_HG/best_model/ResNet3D_non_local_025_0.973_0.900.pt'
+model_path = './best_model/ResNet3D_non_local_025_0.973_0.900.pt'
 INCLUDE = ['visibility_map', 'player_relative', 'unit_type']
 num_classes = 2
 model_configs = {
@@ -53,7 +53,7 @@ criterion = criterion.to(device)
 model = model.to(device)
 
 ###### 2. Data load ######
-PROJECT_DIR = 'D:/1.Project/2019.04_Game AI/Code_HG/'
+PROJECT_DIR = '../.'
 REPLAY_DIR = os.path.join(PROJECT_DIR, 'parsed/TvP/cam/')
 RESULT_DIR = os.path.join(PROJECT_DIR, 'paper_result/cam_result/')
 REPLAY_LIST = os.listdir(REPLAY_DIR)
