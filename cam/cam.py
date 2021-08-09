@@ -2,12 +2,13 @@
 """
 Created on Sun Nov 10 16:52:42 2019
 
-@author: yscho, baek
+@author: Insung baek, yscho
 """
 
 # -*- coding: utf-8 -*-
 
 import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 import sys
 import numpy as np
 import pandas as pd
@@ -20,9 +21,9 @@ import torch.nn as nn
 
 import torch.nn.functional as F
 
-#sys.path.append('../.')
-sys.path.append('../.')
-start_dir = '../.'
+#sys.path.append('D:/PROJECT/2019-ETRI-STARCRAFT/code/Code_HG/baselines/')
+sys.path.append('D:/1.Project/2019.04_Game AI/Code_HG/')
+start_dir = 'D:/1.Project/2019.04_Game AI/Code_HG/'
 os.chdir(start_dir)
 del(start_dir)
 
@@ -34,8 +35,8 @@ import seaborn as sns
 import pickle as pkl
 import matplotlib.pyplot as plt
 
-################################################## 1. Model load 
-model_path = './best_model/ResNet3D_non_local_025_0.973_0.900.pt'
+###### 1. Model load ######
+model_path = 'D:/1.Project/2019.04_Game AI/Code_HG/best_model/ResNet3D_non_local_025_0.973_0.900.pt'
 INCLUDE = ['visibility_map', 'player_relative', 'unit_type']
 num_classes = 2
 model_configs = {
@@ -52,10 +53,10 @@ criterion = nn.CrossEntropyLoss()
 
 criterion = criterion.to(device)
 model = model.to(device)
-################################################## 2. Data load 
 
-PROJECT_DIR = '../.'
-REPLAY_DIR = os.path.join(PROJECT_DIR, 'data/TvP/cam/')
+###### 2. Data load ######
+PROJECT_DIR = 'D:/1.Project/2019.04_Game AI/Code_HG/'
+REPLAY_DIR = os.path.join(PROJECT_DIR, 'parsed/TvP/cam/')
 RESULT_DIR = os.path.join(PROJECT_DIR, 'paper_result/cam_result/')
 REPLAY_LIST = os.listdir(REPLAY_DIR)
 
@@ -88,7 +89,7 @@ def human_readable_size(size, precision=2):
         size = size / 1024.0  # apply the division
     return "%.*f%s" % (precision, size, suffixes[suffix_idx])
 
-# create dataset
+# data 생성
 data_X = []
 data_Y = []
 timestep_all = []
@@ -154,8 +155,8 @@ X_dict = {'visibility_map':X_tensor[0:num_batch,0,:,:],
 print('X_tensor.shape: ', X_tensor.shape)
 print('Y_tensor.shape: ', Y_tensor.shape)
 
-################################################## 3. class activation mapping
-# last conv layer
+###### 3. class activation mapping ######
+# exctract last conv layer
 class SaveFeatures():
     """Extract pretrained activations"""
     features=None
@@ -167,7 +168,7 @@ final_layer = model._modules.get('block3')
 
 activated_features = SaveFeatures(final_layer)
 
-# probability of two class
+# probability of 2 class
 prediction = model(X_dict)
 pred_probabilities = F.softmax(prediction).data.squeeze()
 activated_features.remove()
@@ -176,31 +177,6 @@ torch.topk(pred_probabilities,1)
 weight_softmax_params = list(model._modules.get('linear').parameters())
 weight_softmax = np.squeeze(weight_softmax_params[0].cpu().data.numpy())
 class_idx = torch.topk(pred_probabilities,1)[1].int()
-
-replay_0 = REPLAY_LIST[0]
-replay_1 = REPLAY_LIST[1]
-
-weight_0 = weight_softmax[0]
-weight_1 = weight_softmax[1]
-
-weight_0_df = pd.DataFrame(weight_0, columns=[replay_0])
-weight_1_df = pd.DataFrame(weight_1, columns=[replay_1])
-
-#results = weight_0_df
-results = pd.concat((weight_0_df, weight_1_df), axis=1)
-#results.to_csv(RESULT_DIR+'results_imp_time.csv')
-
-results_50 = []
-for i in range(int(len(results)/5)):
-    results_50.append(np.transpose(np.array(results[int(i)*5:int(i)*5+5].sum(axis=0))))
-
-results_50 = pd.DataFrame(results_50, columns=[replay_0, replay_1])
-results_50.to_csv(RESULT_DIR+'results_imp_time.csv')
-
-# 256 개 node에 대한 weight plotting
-#pd.DataFrame(weight_softmax[0], columns=['weight of class 0']).plot.bar(figsize=(40,15), rot=90)
-#pd.DataFrame(weight_softmax[1], columns=['weight of class 1']).plot.bar(figsize=(40,15), rot=90)
-
 
 for obs in range(len(REPLAY_LIST)):
     #obs=0
@@ -242,20 +218,6 @@ for obs in range(len(REPLAY_LIST)):
                 tmp_sum_cam += tmp_tmp_sum_cam[s]
         sum_cam.append(tmp_sum_cam)
     
-#   time_cams=[]
-#   for t in range(len(sum_cam)):
-#       time_cam = sum(sum_cam[t].flatten())
-#       time_cams.append(time_cam)
-
-#    time_cams = np.array(time_cams)
-#    time_cams[time_cams < 0] = 0
-    
-#   time_cams = pd.DataFrame(time_cams, columns=[REPLAY_LIST[obs]])
-  
-#    os.mkdir(RESULT_DIR+REPLAY_LIST[obs])
-#    os.makedirs(RESULT_DIR+REPLAY_LIST[obs]+'/CAM_factor', exist_ok=True)
-#    time_cams.to_csv(RESULT_DIR+REPLAY_LIST[obs]+'/results_imp_time_cam.csv')      
-
     if torch.topk(pred_probabilities,1).indices[obs] == 0:
         pred = 'Protoss Win'
     else:
@@ -265,10 +227,11 @@ for obs in range(len(REPLAY_LIST)):
         true = 'Protoss Win'
     else:
         true = 'Terran Win'
-         
+
     cam_np = np.stack(sum_cam)
     cam_np_f = cam_np.flatten()
     
+    # adjust relu function
     cam_np_f[cam_np_f < 0] = 0
     
     cam_scaler = (cam_np_f - min(cam_np_f)) / (max(cam_np_f) - min(cam_np_f))
@@ -277,14 +240,13 @@ for obs in range(len(REPLAY_LIST)):
     sum_cam_scaler = []       
     for k in range(cam_scaler.shape[0]):
         sum_cam_scaler.append(cam_scaler[k,:,:])
-    
+
+    os.makedirs(RESULT_DIR+REPLAY_LIST[obs]+'/CAM_factor', exist_ok=True)    
     for sum_t in range(len(sum_cam_scaler)):
         #sum_t=0
         plt.figure(figsize=(8,8))
         sns.heatmap(sum_cam_scaler[sum_t], center=0)
-        # sns.heatmap(sum_cam_scaler[sum_t], cmap="YlGnBu")
         plt.savefig(RESULT_DIR+REPLAY_LIST[obs]+'/CAM_factor/'+'time_index_{}.png'.format(sum_t))
-        # plt.savefig(RESULT_DIR+'cam_{}/'.format(obs)+'Obs_{}_time_index_{}.png'.format(obs, sum_t))
         plt.show()
         
 
