@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Nov 10 16:52:42 2019
-
-@author: Insung baek, yscho
+reference code = https://www.kaggle.com/skylord/grad-cam-on-resnext
 """
 
 import os
