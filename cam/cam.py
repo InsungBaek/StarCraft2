@@ -5,8 +5,6 @@ Created on Sun Nov 10 16:52:42 2019
 @author: Insung baek, yscho
 """
 
-# -*- coding: utf-8 -*-
-
 import os
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 import sys
